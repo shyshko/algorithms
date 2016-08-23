@@ -1,0 +1,11 @@
+# Compiled source #
+###################
+*.o
+*.so
+insertion-sort/insertion-sort
+merge-sort/merge-sort
+generator/generator
+description.file
+input.file
+output.file
+maxsubarray/maxsubarray
