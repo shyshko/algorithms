@@ -17,26 +17,42 @@
 
 #include <jansson.h>
 #include <utility.h>
+#include <getopt.h>
 
 #define testfile "input.file"
 
-void array_insertion_sort(int *array, int size)
+
+static int icrsng_sort;
+
+static void usage()
 {
-	int count;
-	for (int i = 1; i < size; i++) {
-		int key = array[i];
-		int j = i - 1;
-		while (j >= 0 && array[j] > key) {
-			array[j + 1] = array[j];
-			j--;
-			count++;
-		}
-		array[j + 1] = key;
-	}
-	printf("count %d\n", count);
+	fprintf(stderr,
+"Usage: insertion_sort [OPTIONS]  | help\n"
+"--incr_sort [--i] | --decr_sort [--d] incrising or decrising sort\n");
+
+	exit(1);
 }
 
-int main()
+static void fnd_place(int *sorted_arr, int key_pos)
+{
+	int key = sorted_arr[key_pos];
+	int j = key_pos - 1;
+	while (j >= 0 && (icrsng_sort && sorted_arr[j] > key) ||
+			(!icrsng_sort && sorted_arr[j] < key)) { /* Find the place for current element */
+		sorted_arr[j + 1] = sorted_arr[j];
+		j--;
+	}
+	sorted_arr[j + 1] = key;
+}
+
+static void insrtn_sort(int *array, int size)
+{
+	for (int i = 1; i < size; i++) { /* Loop through unsorted elements */
+		fnd_place(array, i);
+	}
+}
+
+int main(int argc, char *argv[])
 {
 	int *unsorted_arr = NULL;
 	int elements;
@@ -44,6 +60,40 @@ int main()
 	char *data_type;
 	FILE *input_f;
 
+	int c;
+
+	while (1) {
+		static struct option long_options[] = {
+			{"incr_sort",   no_argument, &icrsng_sort, 1},
+			{"decr_sort",   no_argument, &icrsng_sort, 0},
+			{0, 0, 0, 0}
+		};
+		/* getopt_long stores the option index here. */
+		int option_index = 0;
+
+		c = getopt_long (argc, argv, "i:d:",
+		                 long_options, &option_index);
+
+		/* Detect the end of the options. */
+		if (c == -1)
+		  break;
+
+		switch (c) {
+
+        case 0:
+			/* If this option set a flag, do nothing else now. */
+			if (long_options[option_index].flag != 0)
+				break;
+			printf ("option %s", long_options[option_index].name);
+			if (optarg)
+				printf (" with arg %s", optarg);
+			printf ("\n");
+			break;
+			default:
+				usage();
+				abort();
+		}
+	}
 	json_t *obj = json_load_file("description.file", 0, 0);
 
 	if (!obj) {
@@ -69,9 +119,11 @@ int main()
 		fscanf(input_f, "%d", &unsorted_arr[i]);
 	}
 
+	printf("sort type %d\n", icrsng_sort);
+
 	printf("unsorted array\n");
 	array_print(unsorted_arr, elements);
-	array_insertion_sort(unsorted_arr, elements);
+	insrtn_sort(unsorted_arr, elements);
 	printf("sorted array\n");
 	array_print(unsorted_arr, elements);
 
